@@ -1,5 +1,5 @@
 /*!
- * Python Compiler for inqilabpatel.com  (python-compiler.js, version 1)
+ * Python Compiler for inqilabpatel.com  (python-compiler.js, version 1.1.0: adds Copy Code and Download Code)
  * ---------------------------------------------------------------------------------
  * Runs real Python 3.14 (Pyodide) entirely in the student's browser.
  * Nothing is sent to the WordPress server.
@@ -411,6 +411,8 @@
             <button type="button" class="pcw-btn pcw-btn-stop" data-pcw="stop" hidden>&#9632; Stop</button>
             <button type="button" class="pcw-btn" data-pcw="clear" title="Clear the output">Clear</button>
             <button type="button" class="pcw-btn" data-pcw="format" title="Tidy indentation to 4 spaces and remove extra spaces and blank lines">Format</button>
+            <button type="button" class="pcw-btn" data-pcw="copy" title="Copy all the code in the editor">Copy Code</button>
+            <button type="button" class="pcw-btn" data-pcw="download" title="Download the code as main.py">Download Code</button>
             <div class="pcw-note" data-pcw="note" aria-live="polite"></div>
         </div>
 
@@ -464,6 +466,8 @@
     var stopButton = part("stop");
     var clearButton = part("clear");
     var formatButton = part("format");
+    var copyButton = part("copy");
+    var downloadButton = part("download");
     var note = part("note");
     var output = part("output");
     var inputRow = part("input-row");
@@ -1373,6 +1377,29 @@ def _pcw_run(source, inputs, seed, emit, output_limit):
         textarea.scrollTop = 0;
         refreshEditor();
         setNote("Formatted: indentation is now 4 spaces, extra spaces and blank lines removed.", "ok");
+    });
+    copyButton.addEventListener("click", function () {
+        function manualCopy() {
+            textarea.focus();
+            textarea.select();
+            setNote("Press Ctrl+C to copy your code.", "");
+        }
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(textarea.value).then(function () { setNote("Copied!", "ok"); }, manualCopy);
+        } else {
+            manualCopy();
+        }
+    });
+    downloadButton.addEventListener("click", function () {
+        var file = new Blob([textarea.value], { type: "text/x-python;charset=utf-8" });
+        var link = document.createElement("a");
+        link.href = URL.createObjectURL(file);
+        link.download = "main.py";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(function () { URL.revokeObjectURL(link.href); }, 1000);
+        setNote("Downloaded main.py.", "ok");
     });
     inputSubmit.addEventListener("click", submitInput);
     inputField.addEventListener("keydown", function (event) {
